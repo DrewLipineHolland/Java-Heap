@@ -1,5 +1,11 @@
 package dbload;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
 public class dbload {
 
 	public static void main(String[] args) {
@@ -20,6 +26,19 @@ public class dbload {
 		if(datafile.equals("")) {
 			System.err.print("No datafile argument provided");
 			System.exit(0);
+		}
+		
+		try {
+			File data = new File(datafile);
+			Scanner s = new Scanner(data);
+			while(s.hasNextLine()) {
+				String line = s.nextLine();
+				ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
+			}
+			s.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("No file found at: " + datafile);
+			e.printStackTrace();
 		}
 
 	}
