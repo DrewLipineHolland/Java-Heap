@@ -13,6 +13,8 @@ public class dbload {
 	public static void main(String[] args) {
 		int pagesize = 0;
 		String datafile = "";
+		Integer[] intIndex = {0,2,4,6,7,9};
+		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
 		for(int i=0; i < args.length; i++) {
 			if(args[i].equals("-p")){
 				i++;
@@ -39,11 +41,15 @@ public class dbload {
 					String line = s.nextLine();
 					ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
 					ArrayList<String> binaryData = new ArrayList<String>();
-					for(String currData : lineData) {
-						char[] charData = currData.toCharArray();
+					for(int i = 0; i < lineData.size(); i++) {
 						String binaryString = "";
-						for(char c : charData) {
-							binaryString += Integer.toBinaryString(c) + " "; 
+						if(intIndexList.contains(i)) {
+							binaryString += Integer.toBinaryString(Integer.parseInt(lineData.get(i))) + " ";
+						}else {
+							char[] charData = lineData.get(i).toCharArray();
+							for(char c : charData) {
+								binaryString += Integer.toBinaryString(c) + " "; 
+							}
 						}
 						binaryData.add(binaryString);
 					}
