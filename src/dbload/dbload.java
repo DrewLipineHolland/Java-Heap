@@ -14,6 +14,7 @@ public class dbload {
 	public static void main(String[] args) {
 		int pagesize = 0;
 		String datafile = "";
+		final int numFields = 10;
 		Integer[] intIndex = {0,2,4,6,7,9};
 		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
 		for(int i=0; i < args.length; i++) {
@@ -39,12 +40,16 @@ public class dbload {
 			s.nextLine();
 			try {
 				FileWriter fw = new FileWriter("heap." + pagesize);
-				int records = 0;
+				int pageBytes = 0;
+				ArrayList<Integer> recordBytes = new ArrayList<Integer>();
+				ArrayList<String> binaryRecords = new ArrayList<String>();
 				while(s.hasNextLine()) {
 					String line = s.nextLine();
 					ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
 					ArrayList<String> binaryData = new ArrayList<String>();
 					int[] dataLengths = new int[lineData.size()];
+					
+					String recordString = "";
 					for(int i = 0; i < lineData.size(); i++) {
 						String binaryString = "";
 						if(intIndexList.contains(i)) {
@@ -55,7 +60,8 @@ public class dbload {
 								while(byteString.length() < 8) {
 									byteString = "0" + byteString;
 								}
-								binaryString += byteString + " ";
+//								binaryString += byteString + " ";
+								recordString += byteString + " ";
 							}
 							dataLengths[i] = bytes.length;
 						}else {
@@ -65,7 +71,8 @@ public class dbload {
 								while(byteString.length() < 8) {
 									byteString = "0" + byteString;
 								}
-								binaryString += byteString + " ";
+//								binaryString += byteString + " ";
+								recordString += byteString + " ";
 							}
 							dataLengths[i] = bytes.length;
 						}
@@ -73,18 +80,45 @@ public class dbload {
 						
 					}
 					//Put the pointers to each field at the start of each record
-					int count = lineData.size();
+					int count = numFields;
+					String fieldPointers = "";
 					for(int length : dataLengths) {
-						String binaryCount = Integer.toBinaryString(count);
-						fw.write(binaryCount + " ");
+						BigInteger bigInt = BigInteger.valueOf(count);
+						byte[] bytes = bigInt.toByteArray();
+						for(byte b : bytes) {
+							String byteString = Integer.toBinaryString(b);
+							while(byteString.length() < 8) {
+								byteString = "0" + byteString;
+							}
+							fieldPointers += byteString + " ";
+						}
 						count += length;
 					}
-					if(records < 10) {
-						for(String field : binaryData) {
-							fw.write(field);
+					pageBytes += count;
+					recordBytes.add(count);
+					recordString = fieldPointers + recordString;
+					binaryRecords.add(recordString);
+					if(pageBytes + count > pagesize) {
+						//write the page
+						//directory
+						for(int j = 0; j < recordBytes.size(); j++) {
+							BigInteger bigInt = BigInteger.valueOf(recordBytes.get(j));
+							byte[] bytes = bigInt.toByteArray();
+							for(byte b : bytes) {
+								String byteString = Integer.toBinaryString(b);
+								while(byteString.length() < 8) {
+									byteString = "0" + byteString;
+								}
+								fw.write(byteString + " ");
+							}
 						}
-						records++;
-					}else {
+						//add delimiter to end of directory
+						fw.write("$ ");
+						//records
+						for(int k = 0; k < binaryRecords.size() - 1; k++) {
+							fw.write(binaryRecords.get(k));
+						}
+						//next page
 						break;
 					}
 				}
