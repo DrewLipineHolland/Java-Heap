@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -35,23 +36,56 @@ public class dbload {
 		try {
 			File data = new File(datafile);
 			Scanner s = new Scanner(data);
+			s.nextLine();
 			try {
 				FileWriter fw = new FileWriter("heap." + pagesize);
+				int records = 0;
 				while(s.hasNextLine()) {
 					String line = s.nextLine();
 					ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
 					ArrayList<String> binaryData = new ArrayList<String>();
+					int[] dataLengths = new int[lineData.size()];
 					for(int i = 0; i < lineData.size(); i++) {
 						String binaryString = "";
 						if(intIndexList.contains(i)) {
-							binaryString += Integer.toBinaryString(Integer.parseInt(lineData.get(i))) + " ";
-						}else {
-							char[] charData = lineData.get(i).toCharArray();
-							for(char c : charData) {
-								binaryString += Integer.toBinaryString(c) + " "; 
+							BigInteger bigInt = BigInteger.valueOf(Integer.parseInt(lineData.get(i)));
+							byte[] bytes = bigInt.toByteArray();
+							for(byte b : bytes) {
+								String byteString = Integer.toBinaryString(b);
+								while(byteString.length() < 8) {
+									byteString = "0" + byteString;
+								}
+								binaryString += byteString + " ";
 							}
+							dataLengths[i] = bytes.length;
+						}else {
+							byte[] bytes = lineData.get(i).getBytes();
+							for(byte b : bytes) {
+								String byteString = Integer.toBinaryString(b);
+								while(byteString.length() < 8) {
+									byteString = "0" + byteString;
+								}
+								binaryString += byteString + " ";
+							}
+							dataLengths[i] = bytes.length;
 						}
 						binaryData.add(binaryString);
+						
+					}
+					//Put the pointers to each field at the start of each record
+					int count = lineData.size();
+					for(int length : dataLengths) {
+						String binaryCount = Integer.toBinaryString(count);
+						fw.write(binaryCount + " ");
+						count += length;
+					}
+					if(records < 10) {
+						for(String field : binaryData) {
+							fw.write(field);
+						}
+						records++;
+					}else {
+						break;
 					}
 				}
 				fw.close();
