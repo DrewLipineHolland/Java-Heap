@@ -2,6 +2,8 @@ package dbload;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -31,10 +33,27 @@ public class dbload {
 		try {
 			File data = new File(datafile);
 			Scanner s = new Scanner(data);
-			while(s.hasNextLine()) {
-				String line = s.nextLine();
-				ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
+			try {
+				FileWriter fw = new FileWriter("heap." + pagesize);
+				while(s.hasNextLine()) {
+					String line = s.nextLine();
+					ArrayList<String> lineData = new ArrayList<String>(Arrays.asList(line.split(",")));
+					ArrayList<String> binaryData = new ArrayList<String>();
+					for(String currData : lineData) {
+						char[] charData = currData.toCharArray();
+						String binaryString = "";
+						for(char c : charData) {
+							binaryString += Integer.toBinaryString(c) + " "; 
+						}
+						binaryData.add(binaryString);
+					}
+				}
+				fw.close();
+			} catch (IOException e) {
+				System.err.println("Error with the FileWriter");
+				e.printStackTrace();
 			}
+			
 			s.close();
 		} catch (FileNotFoundException e) {
 			System.err.println("No file found at: " + datafile);
