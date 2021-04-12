@@ -125,9 +125,11 @@ public class dbload {
 							fw.write(binaryRecords.get(k));
 						}
 						//Fill out the rest of the page with empty bytes
-						for(int p = recordBytes.get(recordBytes.size()-2); p < pagesize; p++) {
+						for(int p = recordBytes.get(recordBytes.size() - 2); p < pagesize; p++) {
+							System.out.println(p);
 							fw.write("00000000 ");
 						}
+						System.out.println(recordBytes);
 						//next page
 						pageBytes = recordBytes.get(recordBytes.size() - 1) - recordBytes.get(recordBytes.size() - 2);
 						recordBytes = new ArrayList<Integer>();
