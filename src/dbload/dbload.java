@@ -17,16 +17,7 @@ public class dbload {
 		final int numFields = 10;
 		Integer[] intIndex = {0,2,4,6,7,9};
 		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
-		//
-		String delimiter = "";
-		byte[] delimiterBytes = "$".getBytes();
-		for(byte dlimByte : delimiterBytes) {
-			String byteString = Integer.toBinaryString(dlimByte);
-			while(byteString.length() < 8) {
-				byteString = "0" + byteString;
-			}
-			delimiter += byteString + " ";
-		}
+
 		for(int i=0; i < args.length; i++) {
 			if(args[i].equals("-p")){
 				i++;
@@ -127,23 +118,6 @@ public class dbload {
 					
 					if(pageBytes > pagesize) {
 						//write the page
-						//directory
-//						int directoryBytes = 0;
-//						for(int j = 0; j < recordBytes.size() - 1; j++) {
-//							BigInteger bigInt = BigInteger.valueOf(recordBytes.get(j));
-//							byte[] bytes = bigInt.toByteArray();
-//							for(byte b : bytes) {
-//								String byteString = Integer.toBinaryString(b);
-////								while(byteString.length() < 8) {
-////									byteString = "0" + byteString;
-////								}
-//								fw.write(byteString + " ");
-//							}
-//							directoryBytes += bytes.length;
-//						}
-//						//add delimiter to end of directory
-//						fw.write(delimiter);
-						//records
 						for(int k = 0; k < binaryRecords.size() - 1; k++) {
 							fw.write(binaryRecords.get(k));
 						}
@@ -162,6 +136,7 @@ public class dbload {
 						
 						break;
 					}else if(pageBytes == pagesize) {
+						//write the page
 						for(int k = 0; k < binaryRecords.size(); k++) {
 							fw.write(binaryRecords.get(k));
 						}
