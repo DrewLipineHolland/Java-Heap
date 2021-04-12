@@ -60,6 +60,7 @@ public class dbquery {
 
 			//Iterate through each page
 			while (s.hasNext()) {
+//				System.out.println("new page");
 				int pageBytes = 0;
 				ArrayList<String> savedRecords = new ArrayList<String>();
 				boolean endOfRecords = false;
@@ -76,6 +77,10 @@ public class dbquery {
 						String bytes = s.next();
 						recordBytes++;
 						if (bytes.equals("00000000")) {
+//							System.out.println(recordBytes);
+							if(pageBytes == 0) {
+//								System.out.println("At start of page");
+							}
 							endOfRecords = true;
 							break;
 						}
@@ -139,6 +144,7 @@ public class dbquery {
 					} else {
 						while (pageBytes < pagesize - 1) {
 							s.next();
+//							System.out.println("Way to go: " + (pagesize - pageBytes));
 							pageBytes++;
 						}
 					}
@@ -146,9 +152,11 @@ public class dbquery {
 					pageBytes += recordBytes;
 					if (pageBytes == pagesize) {
 						// print results from this page
+//						System.out.println("End of page, " + recordBytes);
 						for (String r : savedRecords) {
 							System.out.println(r);
 						}
+						break;
 					}
 				}
 
