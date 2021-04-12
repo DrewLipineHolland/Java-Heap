@@ -63,28 +63,34 @@ public class dbload {
 					String recordString = "";
 					for (int i = 0; i < lineData.size(); i++) {
 						String binaryString = "";
+						
 						if (intIndexList.contains(i)) {
+							//Integer fields
 							int loops = 0;
 							String byteString = intToBinary(Integer.parseInt(lineData.get(i)));
 							if (byteString.length() > 8) {
-
+								//Break long bytes into 8 bit strings
 								for (int x = byteString.length(); x > 8; x -= 9) {
 									String substring1 = byteString.substring(0, x - 8);
 									String substring2 = byteString.substring(x - 8, byteString.length());
 									byteString = substring1 + " " + substring2;
 									loops++;
 								}
+								//make sure each byte is 8 bits long
 								while (byteString.length() % 8 != loops) {
 									byteString = "0" + byteString;
 								}
 							} else {
+								//make sure each byte is 8 bits long
 								while (byteString.length() < 8) {
 									byteString = "0" + byteString;
 								}
 							}
 							recordString += byteString + " ";
 							dataLengths[i] = loops + 1;
+							
 						} else {
+							//String fields
 							byte[] bytes = lineData.get(i).getBytes();
 							for (byte b : bytes) {
 								String byteString = Integer.toBinaryString(b);
@@ -116,12 +122,13 @@ public class dbload {
 						}
 					}
 					pageBytes += count;
+					//Store the location that the current record ends
 					int lastRecordCount = 0;
 					if (recordBytes.size() > 0) {
 						lastRecordCount += recordBytes.get(recordBytes.size() - 1);
 					}
 					recordBytes.add(count + lastRecordCount);
-
+					//Concatenate pointers and record
 					recordString = fieldPointers + recordString;
 					binaryRecords.add(recordString);
 
@@ -157,6 +164,7 @@ public class dbload {
 					}
 				}
 				fw.close();
+				
 			} catch (IOException e) {
 				System.err.println("Error with the FileWriter");
 				e.printStackTrace();
@@ -164,11 +172,13 @@ public class dbload {
 
 			s.close();
 			
+			//Print runtime stats
 			long endTime = System.currentTimeMillis();
 			long timeTaken = endTime - startTime;
 			System.out.println("Time taken to fill heap: " + timeTaken + "ms");
 			System.out.println("Total number of pages used: " + totalPages);
 			System.out.println("Total number of records: " + totalRecords);
+			
 		} catch (FileNotFoundException e) {
 			System.err.println("No file found at: " + datafile);
 			e.printStackTrace();
@@ -176,6 +186,7 @@ public class dbload {
 
 	}
 
+	//Method to convert ints to binary strings
 	public static String intToBinary(int input) {
 		String result = "";
 		int quotient = input;

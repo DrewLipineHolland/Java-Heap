@@ -22,10 +22,11 @@ public class dbquery {
 
 		String[] queries = new String[2];
 		String sensorQuery = query.substring(0, query.length() - 20);
-
+		//Make format of Date_Time consistent with database
 		String dateQuery = query.substring(query.length() - 20);
 		dateQuery = dateQuery.substring(0, 10) + " " + dateQuery.substring(10, 18) + " " + dateQuery.substring(18, 20);
-
+		
+		//Convert Sensor_ID query to binary
 		BigInteger bigInt = BigInteger.valueOf(Integer.parseInt(sensorQuery));
 		byte[] sensorBytes = bigInt.toByteArray();
 		for (byte b : sensorBytes) {
@@ -36,6 +37,7 @@ public class dbquery {
 			queries[0] = byteString;
 		}
 
+		//Convert Date_Time query to binary
 		queries[1] = "";
 		byte[] dateBytes = dateQuery.getBytes();
 		for (byte b : dateBytes) {
@@ -49,6 +51,7 @@ public class dbquery {
 			queries[1] += byteString;
 		}
 
+		//The important fields that the pointers will tell us the location of
 		Integer[] intIndex = { 1, 2, 7, 8, 10 };
 		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
 
@@ -60,7 +63,6 @@ public class dbquery {
 
 			//Iterate through each page
 			while (s.hasNext()) {
-//				System.out.println("new page");
 				int pageBytes = 0;
 				ArrayList<String> savedRecords = new ArrayList<String>();
 				boolean endOfRecords = false;
@@ -77,10 +79,7 @@ public class dbquery {
 						String bytes = s.next();
 						recordBytes++;
 						if (bytes.equals("00000000")) {
-//							System.out.println(recordBytes);
-							if(pageBytes == 0) {
-//								System.out.println("At start of page");
-							}
+							//At end of the records in the page
 							endOfRecords = true;
 							break;
 						}
@@ -142,9 +141,9 @@ public class dbquery {
 						}
 
 					} else {
+						//Go to end of page
 						while (pageBytes < pagesize - 1) {
 							s.next();
-//							System.out.println("Way to go: " + (pagesize - pageBytes));
 							pageBytes++;
 						}
 					}
@@ -152,7 +151,6 @@ public class dbquery {
 					pageBytes += recordBytes;
 					if (pageBytes == pagesize) {
 						// print results from this page
-//						System.out.println("End of page, " + recordBytes);
 						for (String r : savedRecords) {
 							System.out.println(r);
 						}
@@ -162,9 +160,10 @@ public class dbquery {
 
 			}
 
+			//Print runtime stats
 			long endTime = System.currentTimeMillis();
 			long timeTaken = endTime - startTime;
-			System.out.println("Time take to search heap: " + timeTaken + "ms");
+			System.out.println("Time taken to search heap: " + timeTaken + "ms");
 
 			s.close();
 		} catch (FileNotFoundException e) {
@@ -174,6 +173,7 @@ public class dbquery {
 
 	}
 
+	//Method to convert groups of bytes into ASCII characters/ints
 	public static String convertToASCII(String record) {
 		Scanner sc = new Scanner(record);
 		int bytesRead = 0;
