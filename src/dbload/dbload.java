@@ -67,9 +67,9 @@ public class dbload {
 								if(byteString.length() > 8) {
 									
 									for(int x = byteString.length(); x > 8; x -= 9) {
-										String substring1 = byteString.substring(0, x - 9);
+										String substring1 = byteString.substring(0, x - 8);
 										String substring2 = byteString.substring(x - 8, byteString.length());
-										byteString = substring1 + " " + substring2;
+										byteString = substring1 + " " + substring2;									
 //										System.out.println(substring1 + " " + substring2 + ": " + byteString);
 										loops++;
 									}
@@ -84,6 +84,8 @@ public class dbload {
 								recordString += byteString + " ";
 //							}
 //							dataLengths[i] = bytes.length + loops;
+//							System.out.println(lineData.get(i) + ": " + byteString);
+//							System.out.println(lineData.get(i) + ": " + intToBinary(Integer.parseInt(lineData.get(i))));
 							dataLengths[i] = loops + 1;
 						}else {
 							byte[] bytes = lineData.get(i).getBytes();

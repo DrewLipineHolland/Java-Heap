@@ -99,6 +99,7 @@ public class dbquery {
 							dateTime += s.next();
 							recordBytes++;
 						}
+						binaryRecord += dateTime + " ";
 						if (queries[1].equals(dateTime)) {
 							saveRecord = true;
 						}
@@ -117,6 +118,7 @@ public class dbquery {
 								sensorID += s.next();
 								recordBytes++;
 							}
+							binaryRecord += sensorID + " ";
 							if (queries[0].equals(sensorID)) {
 								saveRecord = true;
 							}
@@ -154,7 +156,7 @@ public class dbquery {
 
 			long endTime = System.currentTimeMillis();
 			long timeTaken = endTime - startTime;
-			System.out.println("Time take to search heap: " + timeTaken);
+			System.out.println("Time take to search heap: " + timeTaken + "ms");
 
 			s.close();
 		} catch (FileNotFoundException e) {
@@ -175,23 +177,23 @@ public class dbquery {
 			bytesRead++;
 			recordPositions[i] = Integer.parseInt(bytes, 2);
 		}
-		System.out.println(bytesRead);
+		
 		String asciiRecord = "";
-		for(int j = 0; j + 1 < recordPositions.length - 1; j++) {
+		for(int j = 0; j + 1 < recordPositions.length; j++) {
+			if(!asciiRecord.equals("")) {
+				asciiRecord += ",";
+			}
 			String intString = "";
 			while(bytesRead < recordPositions[j+1]) {
-				System.out.println(recordPositions[j+1]);
 				String currByte = sc.next();
-				System.out.println(currByte);
 				bytesRead++;
+				
 				if(intIndexList.contains(j)) {
-					System.out.println(j);
 					//int
 					intString += currByte;
 					if(bytesRead < recordPositions[j+1]) {				
 						continue;
 					}
-					System.out.println(bytesRead + ": " + recordPositions[j+1]);
 					int num = 0;
 					int power = 1;
 					for(int k = intString.length() - 1; k >= 0; k--) {
@@ -202,15 +204,12 @@ public class dbquery {
 					}
 					asciiRecord += num;
 				}else {
-					System.out.println(j);
+					//String
 					int codeChar = Integer.parseInt(currByte,2);
 					char currChar = (char) codeChar;
-					System.out.println(bytesRead + ": " + currChar);
 					asciiRecord += currChar;
 				}
 			}
-			asciiRecord += ",";
-			System.out.println(asciiRecord);
 		}
 		sc.close();
 		return asciiRecord;
