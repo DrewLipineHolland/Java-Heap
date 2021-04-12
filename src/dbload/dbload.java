@@ -54,12 +54,13 @@ public class dbload {
 					for(int i = 0; i < lineData.size(); i++) {
 						String binaryString = "";
 						if(intIndexList.contains(i)) {
+							int loops = 0;
 							BigInteger bigInt = BigInteger.valueOf(Integer.parseInt(lineData.get(i)));
 							byte[] bytes = bigInt.toByteArray();
 							for(byte b : bytes) {
 								String byteString = Integer.toBinaryString(b);
 								if(byteString.length() > 8) {
-									int loops = 0;
+									
 									for(int x = byteString.length(); x > 8; x -= 9) {
 										String substring1 = byteString.substring(0, x - 9);
 										String substring2 = byteString.substring(x - 8, byteString.length());
@@ -76,7 +77,7 @@ public class dbload {
 								}
 								recordString += byteString + " ";
 							}
-							dataLengths[i] = bytes.length;
+							dataLengths[i] = bytes.length + loops;
 						}else {
 							byte[] bytes = lineData.get(i).getBytes();
 							for(byte b : bytes) {
@@ -92,9 +93,9 @@ public class dbload {
 						
 					}
 					//Put the pointers to each field at the start of each record
-					int count = numFields;
+					int count = numFields + 1;
 					String fieldPointers = "";
-					for(int length : dataLengths) {
+					for(int l = 0; l <= dataLengths.length; l++) {
 						BigInteger bigInt = BigInteger.valueOf(count);
 						byte[] bytes = bigInt.toByteArray();
 						for(byte b : bytes) {
@@ -104,7 +105,9 @@ public class dbload {
 							}
 							fieldPointers += byteString + " ";
 						}
-						count += length;
+						if(l != dataLengths.length) {
+							count += dataLengths[l];
+						}
 					}
 					pageBytes += count;
 					int lastRecordCount = 0;

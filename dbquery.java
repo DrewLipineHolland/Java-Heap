@@ -1,7 +1,10 @@
 package dbquery;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class dbquery {
@@ -46,9 +49,110 @@ public class dbquery {
 			queries[1] += byteString;
 		}
 		
-		Scanner s = new Scanner(datafile);
-		s.close();
-
+		Integer[] intIndex = {1,2,7,8,10};
+		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
+		
+		try {
+			File file = new File(datafile);
+			Scanner s = new Scanner(file);
+			
+			long startTime = System.currentTimeMillis();
+			
+			int pageBytes = 0;
+			ArrayList<String> savedRecords = new ArrayList<String>();
+			while(s.hasNext()) {
+				int recordBytes = 0;
+				boolean saveRecord = false;
+				String binaryRecord = "";
+				//Get the positions of the start and end of the important fields, as well as the end of the record
+				ArrayList<Integer> index = new ArrayList<Integer>();
+				for(int i = 0; i < 11; i++) {
+					String bytes = s.next();
+					if(intIndexList.contains(i)) {
+						index.add(Integer.parseInt(bytes,2));
+					}
+					recordBytes++;
+					binaryRecord += bytes + " ";
+					System.out.println(index);
+					
+					
+				}
+				//Find and compare Date_Time
+				while(recordBytes < index.get(0)) {
+					binaryRecord += s.next() + " ";
+					recordBytes++;
+				}
+				String dateTime = "";
+				while(recordBytes < index.get(1)) {
+					if(dateTime != "") {
+						dateTime += " ";
+					}
+					dateTime += s.next();
+					recordBytes++;
+				}
+				if(queries[1].equals(dateTime)) {
+					saveRecord = true;
+				}
+				
+				if(!saveRecord) {
+					//Find and compare Sensor_ID
+					while(recordBytes < index.get(2)) {
+						binaryRecord += s.next() + " ";
+						recordBytes++;
+					}
+					String sensorID = "";
+					while(recordBytes < index.get(3)) {
+						if(sensorID != "") {
+							sensorID += " ";
+						}
+						sensorID += s.next();
+						recordBytes++;
+					}
+					System.out.println(queries[0] + ", " + sensorID);
+					if(queries[0].equals(sensorID)) {
+						saveRecord = true;
+					}
+				}
+				
+				//Go to the end of the current record
+				while(recordBytes < index.get(4)) {
+					binaryRecord += s.next() + " ";
+					recordBytes++;
+				}
+				
+				if(saveRecord) {
+					//Convert record to ASCII string and store
+					String asciiRecord = convertToASCII(binaryRecord);
+					savedRecords.add(asciiRecord);
+				}
+				
+				
+				pageBytes += recordBytes;
+				if(pageBytes == 400) {
+					//print results from this page
+					for(String r : savedRecords) {
+						System.out.println(r);
+					}
+					pageBytes = 0;
+				}
+				break;
+			}
+			
+			long endTime = System.currentTimeMillis();
+			long timeTaken = endTime - startTime;
+			System.out.println("Time take to search heap: " + timeTaken);
+			
+			s.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("No file found at: " + datafile);
+			e.printStackTrace();
+		}
+				
+		
+	}
+	
+	public static String convertToASCII(String record) {
+		return "ascii ;p";
 	}
 
 }
