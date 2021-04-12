@@ -12,6 +12,9 @@ import java.util.Scanner;
 public class dbload {
 
 	public static void main(String[] args) {
+//		String str = intToBinary(2887628);
+//		System.out.println(str);
+//		System.exit(0);
 		int pagesize = 0;
 		String datafile = "";
 		final int numFields = 10;
@@ -55,16 +58,19 @@ public class dbload {
 						String binaryString = "";
 						if(intIndexList.contains(i)) {
 							int loops = 0;
-							BigInteger bigInt = BigInteger.valueOf(Integer.parseInt(lineData.get(i)));
-							byte[] bytes = bigInt.toByteArray();
-							for(byte b : bytes) {
-								String byteString = Integer.toBinaryString(b);
+							String byteString = intToBinary(Integer.parseInt(lineData.get(i)));
+//							BigInteger bigInt = BigInteger.valueOf(Integer.parseInt(lineData.get(i)));
+//							byte[] bytes = bigInt.toByteArray();
+//							for(byte b : bytes) {
+//								String byteString = Integer.toBinaryString(b);
+//								String byteString = Integer.toBinaryString(Integer.parseInt(lineData.get(i)));
 								if(byteString.length() > 8) {
 									
 									for(int x = byteString.length(); x > 8; x -= 9) {
 										String substring1 = byteString.substring(0, x - 9);
 										String substring2 = byteString.substring(x - 8, byteString.length());
 										byteString = substring1 + " " + substring2;
+//										System.out.println(substring1 + " " + substring2 + ": " + byteString);
 										loops++;
 									}
 									while(byteString.length() % 8 != loops) {
@@ -76,8 +82,9 @@ public class dbload {
 									}
 								}
 								recordString += byteString + " ";
-							}
-							dataLengths[i] = bytes.length + loops;
+//							}
+//							dataLengths[i] = bytes.length + loops;
+							dataLengths[i] = loops + 1;
 						}else {
 							byte[] bytes = lineData.get(i).getBytes();
 							for(byte b : bytes) {
@@ -165,6 +172,22 @@ public class dbload {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public static String intToBinary(int input) {
+		String result = "";
+		int quotient = input;
+		int remainder = 0;
+		while(quotient != 0) {
+			remainder = quotient % 2;
+			quotient = quotient / 2;
+			if(remainder == 1) {
+				result = "1" + result;
+			}else {
+				result = "0" + result;
+			}
+		}
+		return result;
 	}
 
 }

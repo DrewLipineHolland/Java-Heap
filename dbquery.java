@@ -58,95 +58,98 @@ public class dbquery {
 
 			long startTime = System.currentTimeMillis();
 
-			int pageBytes = 0;
-			ArrayList<String> savedRecords = new ArrayList<String>();
-			boolean endOfRecords = false;
+			//Iterate through each page
 			while (s.hasNext()) {
-				int recordBytes = 0;
-				boolean saveRecord = false;
-				String binaryRecord = "";
-				// Get the positions of the start and end of the important fields, as well as
-				// the end of the record
-				ArrayList<Integer> index = new ArrayList<Integer>();
-				for (int i = 0; i < 11; i++) {
-					String bytes = s.next();
-					recordBytes++;
-					if (bytes.equals("00000000")) {
-						endOfRecords = true;
-						break;
-					}
-					if (intIndexList.contains(i)) {
-						index.add(Integer.parseInt(bytes, 2));
-					}
-					binaryRecord += bytes + " ";
-				}
-
-				if (!endOfRecords) {
-					// Find and compare Date_Time
-					while (recordBytes < index.get(0)) {
-						binaryRecord += s.next() + " ";
+				int pageBytes = 0;
+				ArrayList<String> savedRecords = new ArrayList<String>();
+				boolean endOfRecords = false;
+				
+				//Iterate through each record
+				while (s.hasNext()) {
+					int recordBytes = 0;
+					boolean saveRecord = false;
+					String binaryRecord = "";
+					// Get the positions of the start and end of the important fields, as well as
+					// the end of the record
+					ArrayList<Integer> index = new ArrayList<Integer>();
+					for (int i = 0; i < 11; i++) {
+						String bytes = s.next();
 						recordBytes++;
-					}
-					String dateTime = "";
-					while (recordBytes < index.get(1)) {
-						if (dateTime != "") {
-							dateTime += " ";
+						if (bytes.equals("00000000")) {
+							endOfRecords = true;
+							break;
 						}
-						dateTime += s.next();
-						recordBytes++;
-					}
-					if (queries[1].equals(dateTime)) {
-						saveRecord = true;
+						if (intIndexList.contains(i)) {
+							index.add(Integer.parseInt(bytes, 2));
+						}
+						binaryRecord += bytes + " ";
 					}
 
-					if (!saveRecord) {
-						// Find and compare Sensor_ID
-						while (recordBytes < index.get(2)) {
+					if (!endOfRecords) {
+						// Find and compare Date_Time
+						while (recordBytes < index.get(0)) {
 							binaryRecord += s.next() + " ";
 							recordBytes++;
 						}
-						String sensorID = "";
-						while (recordBytes < index.get(3)) {
-							if (sensorID != "") {
-								sensorID += " ";
+						String dateTime = "";
+						while (recordBytes < index.get(1)) {
+							if (dateTime != "") {
+								dateTime += " ";
 							}
-							sensorID += s.next();
+							dateTime += s.next();
 							recordBytes++;
 						}
-						if (queries[0].equals(sensorID)) {
+						if (queries[1].equals(dateTime)) {
 							saveRecord = true;
+						}
+
+						if (!saveRecord) {
+							// Find and compare Sensor_ID
+							while (recordBytes < index.get(2)) {
+								binaryRecord += s.next() + " ";
+								recordBytes++;
+							}
+							String sensorID = "";
+							while (recordBytes < index.get(3)) {
+								if (sensorID != "") {
+									sensorID += " ";
+								}
+								sensorID += s.next();
+								recordBytes++;
+							}
+							if (queries[0].equals(sensorID)) {
+								saveRecord = true;
+							}
+						}
+
+						// Go to the end of the current record
+						while (recordBytes < index.get(4)) {
+							binaryRecord += s.next() + " ";
+							recordBytes++;
+						}
+
+						if (saveRecord) {
+							// Convert record to ASCII string and store
+							String asciiRecord = convertToASCII(binaryRecord);
+							savedRecords.add(asciiRecord);
+						}
+
+					} else {
+						while (pageBytes < pagesize - 1) {
+							s.next();
+							pageBytes++;
 						}
 					}
 
-					// Go to the end of the current record
-					while (recordBytes < index.get(4)) {
-						binaryRecord += s.next() + " ";
-						recordBytes++;
-					}
-
-					if (saveRecord) {
-						// Convert record to ASCII string and store
-						String asciiRecord = convertToASCII(binaryRecord);
-						savedRecords.add(asciiRecord);
-					}
-					
-				}else {
-					while(pageBytes < pagesize - 1) {
-						System.out.println(pageBytes);
-						s.next();
-						pageBytes++;
+					pageBytes += recordBytes;
+					if (pageBytes == pagesize) {
+						// print results from this page
+						for (String r : savedRecords) {
+							System.out.println(r);
+						}
 					}
 				}
 
-				pageBytes += recordBytes;
-				if (pageBytes == pagesize) {
-					// print results from this page
-					for (String r : savedRecords) {
-						System.out.println(r);
-					}
-					pageBytes = 0;
-				}
-				// break;
 			}
 
 			long endTime = System.currentTimeMillis();
@@ -162,7 +165,55 @@ public class dbquery {
 	}
 
 	public static String convertToASCII(String record) {
-		return "ascii ;p";
+		Scanner sc = new Scanner(record);
+		int bytesRead = 0;
+		Integer[] intIndex = {0,2,4,6,7,9};
+		ArrayList<Integer> intIndexList = new ArrayList<Integer>(Arrays.asList(intIndex));
+		int[] recordPositions = new int[11];
+		for (int i = 0; i < 11; i++) {
+			String bytes = sc.next();
+			bytesRead++;
+			recordPositions[i] = Integer.parseInt(bytes, 2);
+		}
+		System.out.println(bytesRead);
+		String asciiRecord = "";
+		for(int j = 0; j + 1 < recordPositions.length - 1; j++) {
+			String intString = "";
+			while(bytesRead < recordPositions[j+1]) {
+				System.out.println(recordPositions[j+1]);
+				String currByte = sc.next();
+				System.out.println(currByte);
+				bytesRead++;
+				if(intIndexList.contains(j)) {
+					System.out.println(j);
+					//int
+					intString += currByte;
+					if(bytesRead < recordPositions[j+1]) {				
+						continue;
+					}
+					System.out.println(bytesRead + ": " + recordPositions[j+1]);
+					int num = 0;
+					int power = 1;
+					for(int k = intString.length() - 1; k >= 0; k--) {
+						if(intString.substring(k, k+1).equals("1")) {
+							num += power;
+						}
+						power *= 2;
+					}
+					asciiRecord += num;
+				}else {
+					System.out.println(j);
+					int codeChar = Integer.parseInt(currByte,2);
+					char currChar = (char) codeChar;
+					System.out.println(bytesRead + ": " + currChar);
+					asciiRecord += currChar;
+				}
+			}
+			asciiRecord += ",";
+			System.out.println(asciiRecord);
+		}
+		sc.close();
+		return asciiRecord;
 	}
 
 }
